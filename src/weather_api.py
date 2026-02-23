@@ -1,6 +1,6 @@
 import requests
 
-API_KEY = "565cec5804b4568a5ff6bebbfdb68ad5"
+API_KEY = "565cec5804b4568a5ff"
 
 DISTRICTS = [
     "Adilabad","Bhadradri Kothagudem","Hanumakonda","Hyderabad",
