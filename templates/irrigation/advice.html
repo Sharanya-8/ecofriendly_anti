@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Irrigation Advice — {{ crop['crop_name']|title }} — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('irrigation.dashboard') }}">Irrigation</a></li>
+                    <li class="breadcrumb-item active">{{ crop['crop_name']|title }}</li>
+                </ol>
+            </nav>
+
+            <h2 class="fw-bold page-title mb-1">
+                <i class="bi bi-droplet text-eco me-2"></i>{{ crop['crop_name']|title }} — Irrigation Advice
+            </h2>
+            <p class="text-muted mb-4">📍 {{ crop['field_name'] }} &bull; {{ g.farmer['location'] }}</p>
+
+            <!-- Stage Info Card -->
+            <div class="card eco-card mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stage-circle">
+                                    <span class="fs-4">🌱</span>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ stage_info['stage_name'] }}</div>
+                                    <div class="text-muted small">{{ stage_info['description'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="row g-2 text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-eco fs-5">{{ stage_info['days_after_sowing'] }}</div>
+                                    <div class="xsmall text-muted">Days Since Planting</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-eco fs-5">{{ stage_info['kc'] }}</div>
+                                    <div class="xsmall text-muted">Crop Kc</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-eco fs-5">{{ stage_info['progress_pct'] }}%</div>
+                                    <div class="xsmall text-muted">Growth Done</div>
+                                </div>
+                            </div>
+                            <div class="progress mt-2" style="height:6px;">
+                                <div class="progress-bar eco-progress" style="width:{{ stage_info['progress_pct'] }}%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if weather_error %}
+            <div class="alert alert-warning"><i class="bi bi-wifi-off me-2"></i>{{ weather_error }}</div>
+            {% endif %}
+
+            {% if weather %}
+            <!-- Weather Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card eco-card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0 fw-semibold"><i class="bi bi-thermometer-half me-2"></i>Current Weather</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2 text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ weather['temp'] }}°C</div>
+                                    <div class="xsmall text-muted">Temp</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ weather['humidity'] }}%</div>
+                                    <div class="xsmall text-muted">Humidity</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold">{{ weather['rain'] }}mm</div>
+                                    <div class="xsmall text-muted">Rainfall</div>
+                                </div>
+                            </div>
+                            <div class="text-muted xsmall text-center mt-2">{{ weather['desc'] }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <!-- Soil Moisture Form -->
+                    <div class="card eco-card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0 fw-semibold"><i class="bi bi-moisture me-2"></i>Soil Moisture Reading</h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('irrigation.advice', crop_id=crop['id']) }}"
+                                id="irrigationForm">
+                                <label class="form-label fw-semibold">Current Soil Moisture (%)</label>
+                                <div class="input-group mb-2">
+                                    <input type="number" class="form-control eco-input" name="soil_moisture"
+                                        id="soil_moisture" step="0.1" min="0" max="100" 
+                                        value="{{ entered_moisture if entered_moisture is not none else current_moisture }}"
+                                        required />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                
+                                <!-- Status Messages -->
+                                <div class="mb-3">
+                                    {% if entered_moisture is not none %}
+                                    <div class="alert alert-success py-2 px-3 mb-2" role="alert">
+                                        <i class="bi bi-check-circle-fill me-1"></i>
+                                        <strong>Calculation complete!</strong> Used moisture: {{ entered_moisture }}%
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if latest_irrigation %}
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        Last recorded: {{ latest_irrigation.recorded_at.strftime('%b %d, %Y at %I:%M %p') if latest_irrigation.recorded_at is not string else latest_irrigation.recorded_at }}
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        No irrigation history yet
+                                    </small>
+                                    {% endif %}
+                                    
+                                    {% if entered_moisture is none %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-droplet me-1"></i>
+                                        Baseline moisture: {{ current_moisture }}%
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <button type="submit" class="btn btn-eco w-100" id="calcBtn">
+                                    <i class="bi bi-calculator me-2"></i>Calculate & Save
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Result Card -->
+            {% if result %}
+            <div class="card result-border-{{ result['badge'] }} mb-4">
+                <div class="card-header bg-{{ result['badge'] }} bg-opacity-10 border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-droplet-fill me-2"></i>Irrigation Recommendation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center mb-3">
+                        <div class="col-4">
+                            <div class="result-metric">
+                                <div class="metric-value">{{ result['et0'] }}</div>
+                                <div class="metric-label">ET₀ (mm/day)</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="result-metric">
+                                <div class="metric-value">{{ result['etc'] }}</div>
+                                <div class="metric-label">Crop ET (mm)</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="result-metric highlight-metric">
+                                <div class="metric-value text-eco">{{ result['net_water'] }}</div>
+                                <div class="metric-label">Water Needed (mm)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <span class="badge bg-{{ result['badge'] }} fs-6 px-4 py-2">
+                            {{ result['decision'] }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="{{ url_for('irrigation.weekly', crop_id=crop['id']) }}" class="btn btn-outline-eco">
+                    <i class="bi bi-calendar3 me-1"></i>View 5-Day Plan
+                </a>
+                <a href="{{ url_for('irrigation.dashboard') }}" class="btn btn-eco">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Crops
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

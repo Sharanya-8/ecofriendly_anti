@@ -1,0 +1,11 @@
+date,city,crop,soil_moisture,water_needed,water_saved,decision
+2026-02-18 17:49,Hyderabad,rice,40.0,2.7,9.3,💧 Light irrigation
+2026-02-18 18:31,Hyderabad,groundnut,40.0,1.8,6.2,💧 Light irrigation
+2026-02-19 13:24,Hyderabad,groundnut,0.0,5.28,2.72,✅ Irrigation Required
+2026-02-19 14:06,Hyderabad,rice,50.0,3.96,8.04,💧 Light irrigation
+2026-02-22 10:35,Hyderabad,rce,20.0,5.28,2.72,✅ Irrigation Required
+2026-02-22 10:37,Warangal,groundnut,20.0,4.4,3.6,✅ Irrigation Required
+2026-02-22 11:58,Hyderabad,rice,18.27,Moderate irrigation
+2026-02-22 11:59,Hyderabad,rice,18.27,Full irrigation required
+2026-02-22 12:00,Hyderabad,rice,0,No irrigation needed (Soil wet)
+2026-02-22 12:16,Hyderabad,wheat,initial,21,11.07,Full irrigation required

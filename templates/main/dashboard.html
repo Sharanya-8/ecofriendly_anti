@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ── Page Header ── -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold page-title mb-1">
+                <i class="bi bi-grid-3x3-gap-fill text-eco me-2"></i>
+                Farm Dashboard
+            </h2>
+            <p class="text-muted mb-0">Good day, <strong>{{ farmer['full_name'] }}</strong> &bull; {{ farmer['location']
+                }}</p>
+        </div>
+        <a href="{{ url_for('crops.recommend') }}" class="btn btn-eco">
+            <i class="bi bi-plus-circle me-1"></i> New Crop
+        </a>
+    </div>
+
+    <!-- ── Stats Row ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card card h-100 text-center">
+                <div class="card-body">
+                    <div class="stat-icon text-eco">🌾</div>
+                    <div class="stat-number">{{ crops | length }}</div>
+                    <div class="stat-label">Active Crops</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card card h-100 text-center">
+                <div class="card-body">
+                    <div class="stat-icon">💧</div>
+                    <div class="stat-number">{{ recent_history | length }}</div>
+                    <div class="stat-label">Recent Events</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card card h-100 text-center">
+                <div class="card-body">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-number">{{ saved_events }}</div>
+                    <div class="stat-label">Water Saves</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            {% if weather %}
+            <div class="stat-card card h-100 text-center">
+                <div class="card-body">
+                    <div class="stat-icon">🌡</div>
+                    <div class="stat-number">{{ weather['temp'] }}°C</div>
+                    <div class="stat-label">{{ weather['city'] }}</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="stat-card card h-100 text-center border-warning">
+                <div class="card-body">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-label text-warning">Weather unavailable</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ── Active Crops ── -->
+        <div class="col-lg-8">
+            <div class="card eco-card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-flower1 me-2 text-eco"></i>Active Crops</h5>
+                    <a href="{{ url_for('crops.my_crops') }}" class="btn btn-sm btn-outline-eco">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if crops %}
+                    <div class="row g-3">
+                        {% for crop in crops %}
+                        <div class="col-md-6">
+                            <div class="crop-mini-card p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="fw-bold text-capitalize">{{ crop['crop_name'] }}</span>
+                                        <span
+                                            class="badge stage-badge-{{ crop['stage_name']|lower|replace(' ', '-') }} ms-2">{{
+                                            crop['stage_name'] }}</span>
+                                    </div>
+                                    <a href="{{ url_for('irrigation.advice', crop_id=crop['id']) }}"
+                                        class="btn btn-sm btn-eco" title="Get irrigation advice">
+                                        <i class="bi bi-droplet"></i>
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block">📍 {{ crop['field_name'] }} &bull; Day {{
+                                    crop['days_after_sowing'] }}</small>
+                                <div class="progress mt-2" style="height:6px;">
+                                    <div class="progress-bar eco-progress" role="progressbar"
+                                        style="width:{{ crop['progress_pct'] }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ crop['progress_pct'] }}% complete</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state text-center py-5">
+                        <div class="empty-icon">🌱</div>
+                        <p class="text-muted mt-2">No active crops yet.</p>
+                        <a href="{{ url_for('crops.recommend') }}" class="btn btn-eco mt-2">
+                            <i class="bi bi-plus-circle me-1"></i>Add Your First Crop
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Weather + Recent History ── -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+
+            <!-- Weather Widget -->
+            {% if weather %}
+            <div class="card eco-card">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-cloud-sun me-2 text-eco"></i>Current Weather</h6>
+                </div>
+                <div class="card-body">
+                    <div class="weather-widget text-center">
+                        <img src="https://openweathermap.org/img/wn/{{ weather['icon'] }}@2x.png"
+                            alt="{{ weather['desc'] }}" width="60" />
+                        <div class="weather-temp fw-bold">{{ weather['temp'] }}°C</div>
+                        <div class="text-muted small mb-3">{{ weather['desc'] }} &bull; {{ weather['city'] }}</div>
+                        <div class="row text-center g-2">
+                            <div class="col-4">
+                                <div class="weather-stat">
+                                    <i class="bi bi-droplet text-primary"></i>
+                                    <div class="fw-semibold">{{ weather['humidity'] }}%</div>
+                                    <div class="xsmall text-muted">Humidity</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="weather-stat">
+                                    <i class="bi bi-cloud-rain text-info"></i>
+                                    <div class="fw-semibold">{{ weather['rain'] }}mm</div>
+                                    <div class="xsmall text-muted">Rainfall</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="weather-stat">
+                                    <i class="bi bi-wind text-secondary"></i>
+                                    <div class="fw-semibold">{{ weather['wind'] }}</div>
+                                    <div class="xsmall text-muted">m/s Wind</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Irrigation -->
+            <div class="card eco-card flex-grow-1">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-eco"></i>Recent Irrigation</h6>
+                    <a href="{{ url_for('irrigation.history') }}" class="btn btn-sm btn-outline-eco">All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_history %}
+                    <ul class="list-group list-group-flush">
+                        {% for r in recent_history %}
+                        <li class="list-group-item history-item">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-semibold text-capitalize">{{ r['crop_name'] }}</span>
+                                <span class="badge bg-{{ 'success' if r['water_required'] == 0 else 'primary' }}">
+                                    {{ r['water_required'] }} mm
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ r['stage'] }} &bull; {{ r['recorded_at'].strftime('%Y-%m-%d') }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-droplet fs-2 d-block mb-2 opacity-50"></i>
+                        No irrigation history yet
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

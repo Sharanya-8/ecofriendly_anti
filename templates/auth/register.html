@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Register - EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="auth-bg d-flex align-items-center justify-content-center py-5">
+    <div class="auth-card card shadow-lg" style="max-width:520px;">
+        <div class="card-body p-5">
+
+            <div class="text-center mb-4">
+                <div class="auth-icon mb-3">🌱</div>
+                <h2 class="fw-bold text-dark">Create Account</h2>
+                <p class="text-muted">Join EcoFarm AI and transform your farming</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text eco-input-icon"><i class="bi bi-person-badge"></i></span>
+                            <input type="text" class="form-control eco-input" id="full_name" name="full_name"
+                                placeholder="Your full name" required />
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="username" class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text eco-input-icon"><i class="bi bi-at"></i></span>
+                            <input type="text" class="form-control eco-input" id="username" name="username"
+                                placeholder="Choose a username" required autocomplete="username" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text eco-input-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control eco-input" id="password" name="password"
+                                placeholder="Min. 6 characters" required autocomplete="new-password" minlength="6" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="confirm_password" class="form-label fw-semibold">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text eco-input-icon"><i class="bi bi-shield-lock"></i></span>
+                            <input type="password" class="form-control eco-input" id="confirm_password"
+                                name="confirm_password" placeholder="Repeat password" required
+                                autocomplete="new-password" />
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="location" class="form-label fw-semibold">District / Location</label>
+                        <div class="input-group">
+                            <span class="input-group-text eco-input-icon"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" class="form-control eco-input" id="location" name="location"
+                                placeholder="e.g. Warangal" required list="districtList" />
+                            <datalist id="districtList">
+                                {% for d in
+                                ["Adilabad","Hyderabad","Karimnagar","Khammam","Mahabubnagar","Nalgonda","Nizamabad","Rangareddy","Warangal","Medak","Siddipet"]
+                                %}
+                                <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-eco w-100 fw-semibold py-2 mt-4" id="registerBtn">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <hr class="my-4" />
+            <p class="text-center text-muted mb-0">
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}" class="eco-link fw-semibold">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

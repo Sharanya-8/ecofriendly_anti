@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results - EcoFriendly Farming</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Crop & Irrigation Results</h1>
+        <p><strong>Location:</strong> {{ city }}</p>
+        <hr>
+        <h2>🌾 Recommended Crop</h2>
+        <p>{{ recommended_crop }}</p>
+
+        <h2>🧪 Soil Fertility</h2>
+        <p>{{ soil_fertility }}</p>
+
+        <h2>🌦 Weather Info</h2>
+        <p>Temperature: {{ temp }}°C | Humidity: {{ humidity }}% | Rainfall: {{ rainfall }} mm</p>
+
+        <h2>💧 Irrigation Advice</h2>
+        <p>{{ decision }}</p>
+        <p>Water to Apply: {{ water_needed }} L/plant</p>
+        <p>Water Saved: {{ water_saved }} L</p>
+
+        <a href="{{ url_for('index') }}" class="btn">🔙 Back</a>
+    </div>
+</body>
+</html>

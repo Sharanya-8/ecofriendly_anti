@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Irrigation History — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold page-title"><i class="bi bi-clock-history text-eco me-2"></i>Irrigation History</h2>
+            <p class="text-muted mb-0">{{ records | length }} record(s) on file</p>
+        </div>
+        <a href="{{ url_for('irrigation.dashboard') }}" class="btn btn-outline-eco">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+
+    {% if records %}
+    <div class="card eco-card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="historyTable">
+                    <thead class="eco-thead">
+                        <tr>
+                            <th>Date</th>
+                            <th>Crop</th>
+                            <th>Field</th>
+                            <th>Stage</th>
+                            <th>Day</th>
+                            <th>ET₀</th>
+                            <th>Kc</th>
+                            <th>Water (mm)</th>
+                            <th>Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td class="text-nowrap"><small>{{ r['recorded_at'].strftime('%Y-%m-%d %H:%M') }}</small></td>
+                            <td class="fw-semibold text-capitalize">{{ r['crop_name'] }}</td>
+                            <td><small class="text-muted">{{ r['field_name'] }}</small></td>
+                            <td>
+                                <span
+                                    class="badge stage-badge-{{ r['stage']|lower|replace(' ','-')|replace('/','-') }}">
+                                    {{ r['stage'] }}
+                                </span>
+                            </td>
+                            <td>{{ r['days_after_sowing'] }}</td>
+                            <td>{{ r['et0'] }}</td>
+                            <td>{{ r['kc'] }}</td>
+                            <td>
+                                <span
+                                    class="fw-bold {% if r['water_required'] == 0 %}text-success{% elif r['water_required'] > 5 %}text-danger{% else %}text-warning{% endif %}">
+                                    {{ r['water_required'] }}
+                                </span>
+                            </td>
+                            <td><small>{{ r['decision'] }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state text-center py-5">
+        <div class="empty-icon fs-1">📋</div>
+        <h4 class="mt-3 text-muted">No irrigation history yet</h4>
+        <a href="{{ url_for('irrigation.dashboard') }}" class="btn btn-eco mt-3">
+            <i class="bi bi-droplet me-1"></i>Start Irrigating
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

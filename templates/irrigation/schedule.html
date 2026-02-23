@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% block title %}Irrigation Schedule — {{ crop.crop_name|title }} — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold page-title">
+                <i class="bi bi-calendar-check text-eco me-2"></i>
+                Full Irrigation Schedule
+            </h2>
+            <p class="text-muted mb-0">
+                {{ crop.crop_name|title }} — {{ crop.field_name }}
+                <span class="badge bg-{{ 'success' if crop.status == 'active' else 'secondary' }} ms-2">
+                    {{ crop.status|title }}
+                </span>
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('irrigation.dashboard') }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+            <button type="button" class="btn btn-eco" data-bs-toggle="modal" data-bs-target="#regenerateModal">
+                <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+            </button>
+        </div>
+    </div>
+
+    <!-- Current Soil Moisture Input Card -->
+    <div class="card eco-card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-moisture me-2"></i>Update Schedule with Current Soil Moisture
+            </h5>
+            <form method="POST" action="{{ url_for('irrigation.generate_schedule', crop_id=crop.id) }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Current Soil Moisture (%)</label>
+                    <input 
+                        type="number" 
+                        name="soil_moisture" 
+                        class="form-control" 
+                        placeholder="Enter current moisture %" 
+                        min="0" 
+                        max="100" 
+                        step="0.1"
+                        value="{{ current_moisture if current_moisture else '' }}"
+                        required>
+                    <small class="text-muted">Enter the latest soil moisture reading</small>
+                </div>
+                <div class="col-md-8">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Regenerate Schedule with New Moisture
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        💡 Tip: Always update soil moisture before generating schedule for accurate irrigation planning
+                    </small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card eco-card">
+                <div class="card-body text-center">
+                    <div class="fs-3 text-eco">{{ stats.total }}</div>
+                    <div class="text-muted small">Total Events</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card eco-card">
+                <div class="card-body text-center">
+                    <div class="fs-3 text-success">{{ stats.completed }}</div>
+                    <div class="text-muted small">Completed</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card eco-card">
+                <div class="card-body text-center">
+                    <div class="fs-3 text-warning">{{ stats.pending }}</div>
+                    <div class="text-muted small">Upcoming</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card eco-card">
+                <div class="card-body text-center">
+                    <div class="fs-3 text-danger">{{ stats.missed }}</div>
+                    <div class="text-muted small">Missed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adherence Rate -->
+    {% if stats.total > 0 %}
+    <div class="card eco-card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold">Schedule Adherence</span>
+                <span class="badge bg-{{ 'success' if stats.adherence_rate >= 80 else 'warning' if stats.adherence_rate >= 60 else 'danger' }}">
+                    {{ stats.adherence_rate }}%
+                </span>
+            </div>
+            <div class="progress" style="height: 20px">
+                <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ stats.adherence_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.adherence_rate }}%">
+                    {{ stats.adherence_rate }}%
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Missed Irrigation Warning with Soil Moisture Input -->
+    {% if missed_count > 0 %}
+    <div class="alert alert-warning" role="alert">
+        <div class="row align-items-center">
+            <div class="col-md-12 mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>{{ missed_count }} irrigation(s) missed!</strong> 
+                Enter current soil moisture to recalculate the schedule accurately.
+            </div>
+            <div class="col-md-12">
+                <form method="POST" action="{{ url_for('irrigation.recalculate_schedule', crop_id=crop.id) }}" class="row g-2">
+                    <div class="col-auto">
+                        <input 
+                            type="number" 
+                            name="soil_moisture" 
+                            class="form-control" 
+                            placeholder="Current moisture %" 
+                            min="0" 
+                            max="100" 
+                            step="0.1"
+                            value="{{ current_moisture if current_moisture else '' }}"
+                            required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-calculator me-1"></i>Recalculate with Current Moisture
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Current Stage Info -->
+    <div class="card eco-card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-2">Current Growth Stage</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge stage-badge-{{ stage_info.stage_name|lower|replace(' ','-') }} fs-6">
+                            {{ stage_info.stage_name }}
+                        </span>
+                        <span class="text-muted">Day {{ stage_info.days_after_sowing }} of {{ crop.growth_duration }}</span>
+                        <span class="text-muted">Kc: {{ stage_info.kc }}</span>
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">{{ stage_info.description }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="progress" style="height: 30px">
+                        <div class="progress-bar bg-eco" role="progressbar" aria-valuenow="{{ stage_info.progress_pct }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stage_info.progress_pct }}%">
+                            {{ stage_info.progress_pct }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">Growth Progress</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Timeline -->
+    <div class="card eco-card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="bi bi-calendar3 me-2"></i>Irrigation Timeline
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if schedule %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="eco-thead">
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Stage</th>
+                            <th>Water (mm)</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in schedule %}
+                        <tr class="{% if entry.status == 'missed' %}table-danger{% elif entry.status == 'completed' %}table-success{% endif %}">
+                            <td class="text-nowrap">
+                                <small>{{ entry.scheduled_date.strftime('%Y-%m-%d') if entry.scheduled_date is not string else entry.scheduled_date }}</small>
+                            </td>
+                            <td>
+                                {% set days = (entry.scheduled_date - crop.planting_date).days if entry.scheduled_date is not string else 0 %}
+                                Day {{ days }}
+                            </td>
+                            <td>
+                                <span class="badge stage-badge-{{ entry.reason.split()[0]|lower }}">
+                                    {{ entry.reason.split()[0] if entry.reason else 'N/A' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-{{ 'success' if entry.water_amount == 0 else 'primary' }}">
+                                    {{ entry.water_amount }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if entry.status == 'completed' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Done
+                                    </span>
+                                {% elif entry.status == 'missed' %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Missed
+                                    </span>
+                                {% elif entry.status == 'pending' %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-clock me-1"></i>Pending
+                                    </span>
+                                {% elif entry.status == 'skipped' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-skip-forward me-1"></i>Skipped
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ entry.reason }}</small></td>
+                            <td>
+                                {% if entry.status == 'pending' %}
+                                    {% set today = now().date() if now is defined else None %}
+                                    {% set entry_date = entry.scheduled_date if entry.scheduled_date is not string else entry.scheduled_date %}
+                                    {% if entry_date == today or (entry_date is string and entry_date == today|string) %}
+                                        <button 
+                                            class="btn btn-sm btn-success" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#completeModal{{ entry.id }}">
+                                            <i class="bi bi-check2 me-1"></i>Done
+                                        </button>
+                                        
+                                        <!-- Complete Modal -->
+                                        <div class="modal fade" id="completeModal{{ entry.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Mark Irrigation Complete</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form method="POST" action="{{ url_for('irrigation.mark_complete', schedule_id=entry.id) }}">
+                                                        <div class="modal-body">
+                                                            <p>Confirm irrigation for <strong>{{ entry.scheduled_date }}</strong></p>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Actual Water Used (mm)</label>
+                                                                <input 
+                                                                    type="number" 
+                                                                    name="actual_water" 
+                                                                    class="form-control" 
+                                                                    value="{{ entry.water_amount }}"
+                                                                    step="0.1"
+                                                                    min="0">
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-success">
+                                                                <i class="bi bi-check2 me-1"></i>Confirm
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <small class="text-muted">Upcoming</small>
+                                    {% endif %}
+                                {% elif entry.status == 'completed' %}
+                                    <small class="text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                        {{ entry.completed_at.strftime('%H:%M') if entry.completed_at else '' }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="empty-icon fs-1">📅</div>
+                <h4 class="mt-3 text-muted">No schedule generated yet</h4>
+                <p class="text-muted">Enter current soil moisture to generate accurate schedule</p>
+                <form method="POST" action="{{ url_for('irrigation.generate_schedule', crop_id=crop.id) }}" class="mt-3">
+                    <div class="row justify-content-center">
+                        <div class="col-md-4">
+                            <input 
+                                type="number" 
+                                name="soil_moisture" 
+                                class="form-control mb-2" 
+                                placeholder="Current soil moisture %" 
+                                min="0" 
+                                max="100" 
+                                step="0.1"
+                                value="{{ current_moisture if current_moisture else 60 }}"
+                                required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-eco">
+                        <i class="bi bi-calendar-plus me-1"></i>Generate Schedule
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Regenerate Modal -->
+<div class="modal fade" id="regenerateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Regenerate Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('irrigation.generate_schedule', crop_id=crop.id) }}">
+                <div class="modal-body">
+                    <p>Enter current soil moisture to regenerate the schedule.</p>
+                    <p class="text-warning"><i class="bi bi-exclamation-triangle me-2"></i>This will clear all pending irrigation events.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Soil Moisture (%)</label>
+                        <input 
+                            type="number" 
+                            name="soil_moisture" 
+                            class="form-control" 
+                            placeholder="Enter current moisture %" 
+                            min="0" 
+                            max="100" 
+                            step="0.1"
+                            value="{{ current_moisture if current_moisture else 60 }}"
+                            required>
+                        <small class="text-muted">Completed and missed records will be preserved.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-eco">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.stage-badge-initial { background-color: #17a2b8; color: white; }
+.stage-badge-development { background-color: #28a745; color: white; }
+.stage-badge-mid-season { background-color: #ffc107; color: black; }
+.stage-badge-late { background-color: #fd7e14; color: white; }
+.stage-badge-harvest-ready { background-color: #6c757d; color: white; }
+</style>
+{% endblock %}

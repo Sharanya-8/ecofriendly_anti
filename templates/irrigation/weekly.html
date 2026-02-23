@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}5-Day Plan — {{ crop['crop_name']|title }} — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold page-title mb-1">
+        <i class="bi bi-calendar3 text-eco me-2"></i>5-Day Irrigation Plan
+    </h2>
+    <p class="text-muted mb-4">
+        {{ crop['crop_name']|title }} &bull; {{ crop['field_name'] }} &bull; Stage: {{ stage_info['stage_name'] }}
+    </p>
+
+    {% if forecast_error %}
+    <div class="alert alert-warning">
+        <i class="bi bi-wifi-off me-2"></i>Forecast unavailable: {{ forecast_error }}
+    </div>
+    {% endif %}
+
+    {% if weekly_plan %}
+    <div class="row g-3 mb-4">
+        {% for day in weekly_plan %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card eco-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">{{ day['date'] }}</span>
+                    <span class="badge bg-{{ day['badge'] }}">{{ day['badge']|upper }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-2 mb-3">
+                        <div class="col-4">
+                            <i class="bi bi-thermometer text-danger"></i>
+                            <div class="fw-semibold">{{ day['temp'] }}°</div>
+                            <div class="xsmall text-muted">Temp</div>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-droplet text-primary"></i>
+                            <div class="fw-semibold">{{ day['humidity'] }}%</div>
+                            <div class="xsmall text-muted">Humidity</div>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-cloud-rain text-info"></i>
+                            <div class="fw-semibold">{{ day['rain'] }}mm</div>
+                            <div class="xsmall text-muted">Rain</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-semibold text-eco fs-5">{{ day['water'] }} L</div>
+                        <div class="xsmall text-muted mb-2">Irrigation Amount</div>
+                        <span class="badge bg-{{ day['badge'] }} w-100 py-1">{{ day['decision'] }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card eco-card">
+        <div class="card-body text-center py-4">
+            <div class="fs-1">💧</div>
+            <h4 class="fw-bold text-eco">{{ total_saved }} L</h4>
+            <p class="text-muted mb-0">Total water saved this week by skipping unnecessary irrigation</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4 d-flex gap-3">
+        <a href="{{ url_for('irrigation.advice', crop_id=crop['id']) }}" class="btn btn-eco">
+            <i class="bi bi-droplet me-1"></i>Get Today's Advice
+        </a>
+        <a href="{{ url_for('irrigation.dashboard') }}" class="btn btn-outline-eco">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+{% endblock %}

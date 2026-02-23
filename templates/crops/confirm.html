@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Confirm Crop — EcoFarm AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <h2 class="fw-bold page-title mb-4">
+                <i class="bi bi-check2-circle text-eco me-2"></i>Recommendation Results
+            </h2>
+
+            <!-- Crop Result Banner -->
+            <div class="result-banner card mb-4">
+                <div class="card-body p-4 text-center">
+                    <div class="crop-result-icon mb-3">🌾</div>
+                    <h3 class="fw-bold text-white mb-1 text-capitalize">{{ rec['recommended_crop'] }}</h3>
+                    <span class="badge result-badge-season">{{ rec['season'] }} Season</span>
+                    <div class="mt-3 text-white opacity-75">
+                        Estimated growing period: <strong>{{ rec['growth_duration'] }} days</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Row -->
+            <div class="row g-3 mb-4">
+                <!-- Soil Report -->
+                <div class="col-md-6">
+                    <div class="card eco-card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0 fw-semibold"><i class="bi bi-layers me-2 text-eco"></i>Soil Report</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr>
+                                    <td class="text-muted">Fertility</td>
+                                    <td class="fw-semibold">{{ rec['soil_fertility'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Texture</td>
+                                    <td class="fw-semibold">{{ rec['soil_nature'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">N / P / K</td>
+                                    <td class="fw-semibold">{{ rec['N'] }} / {{ rec['P'] }} / {{ rec['K'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">pH</td>
+                                    <td class="fw-semibold">{{ rec['ph'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Moisture</td>
+                                    <td class="fw-semibold">{{ rec['moisture'] }}%</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Weather Report -->
+                <div class="col-md-6">
+                    <div class="card eco-card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0 fw-semibold"><i class="bi bi-cloud-sun me-2 text-eco"></i>Weather at {{
+                                rec['city'] }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr>
+                                    <td class="text-muted">Temperature</td>
+                                    <td class="fw-semibold">{{ rec['temperature'] }} °C</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Humidity</td>
+                                    <td class="fw-semibold">{{ rec['humidity'] }}%</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Rainfall</td>
+                                    <td class="fw-semibold">{{ rec['rainfall'] }} mm</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirm Form -->
+            <div class="card eco-card">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-calendar-plus me-2 text-eco"></i>Confirm & Save Crop
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Set a planting date to start tracking this crop's growth stage and irrigation automatically.
+                    </p>
+                    <form method="POST" action="{{ url_for('crops.confirm') }}" id="confirmForm">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Planting Date</label>
+                                <input type="date" class="form-control eco-input" name="planting_date"
+                                    id="planting_date" required value="{{ today }}" max="{{ today }}" />
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-eco fw-semibold" id="confirmBtn">
+                                        <i class="bi bi-check-circle me-2"></i>Save Crop to My Farm
+                                    </button>
+                                    <a href="{{ url_for('crops.recommend') }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Try Again
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('planting_date').value = new Date().toISOString().split('T')[0];
+    });
+</script>
+{% endblock %}
